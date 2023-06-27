@@ -3,6 +3,7 @@ import 'package:send_remider_to_user/data/sharedpref/constants/preferences.dart'
 import 'package:send_remider_to_user/stores/form/form_store.dart';
 import 'package:send_remider_to_user/stores/theme/theme_store.dart';
 import 'package:send_remider_to_user/ui/add_todo/add_todo.dart';
+import 'package:send_remider_to_user/ui/add_todo/widget/show_dailogue.dart';
 import 'package:send_remider_to_user/ui/add_todo/widget/todo_list_card.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:send_remider_to_user/utils/locale/app_localization.dart';
@@ -18,7 +19,8 @@ class TodoListScreen extends StatefulWidget {
   State<TodoListScreen> createState() => _TodoListScreenState();
 }
 
-class _TodoListScreenState extends State<TodoListScreen> {
+class _TodoListScreenState extends State<TodoListScreen>
+    with TickerProviderStateMixin {
   //stores:---------------------------------------------------------------------
   late ThemeStore _themeStore;
 
@@ -27,11 +29,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
   String _mobile = '';
 
   int selectedButton = 0;
+  late TabController _tabController;
 
   @override
   void initState() {
     loadData();
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   loadData() async {
@@ -49,93 +53,149 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   List<Family> familyList = [
-    Family('Ruchita', 'Kamthe',
-        'Building no, Street, Area, State, Country, Pin', '7437347483'),
-    Family('Shabana', 'Sayyad',
-        'Building no, Street, Area, State, Country, Pin', '7437347483'),
-    Family('Rohit', 'Adhav', 'Building no, Street, Area, State, Country, Pin',
-        '7437347659'),
+    Family(
+        'Ruchita Kamthe',
+        'Lorem ipsum dolor sit amet, consectetur Lorem ipsum dolor sit amet, consectetur',
+        '12/3/2023 4:78 AM',
+        'meet.google.com/nyd-aceb-xws',
+        'gsgdhgdsv hjgdsjdsj jdhgjdgs dsjhg'),
+    Family(
+        'Shabana Sayyad',
+        'Lorem ipsum dolor sit amet, consectetur Lorem ipsum dolor sit amet, consectetur',
+        '12/3/2023 4:78 AM',
+        'meet.google.com/nyd-aceb-xws',
+        'gsgdhgdsv hjgdsjdsj jdhgjdgs dsjhg'),
+    Family(
+        'Rohit Adhav',
+        'Lorem ipsum dolor sit amet, consectetur Lorem ipsum dolor sit amet, consectetur',
+        '12/3/2023 4:78 AM',
+        'meet.google.com/nyd-aceb-xws',
+        'gsgdhgdsv hjgdsjdsj jdhgjdgs dsjhg'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () {
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
-          child: Stack(
-            children: [
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  Column(
-                    children: [
-                      Expanded(child: _buildFamilyListContent()),
-                    ],
+      appBar: new AppBar(
+        title: Text('Task List'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const <Widget>[
+            Tab(
+              text: 'My Task',
+              // icon: Icon(Icons.cloud_outlined),
+            ),
+            Tab(
+              text: 'Team Task',
+              // icon: Icon(Icons.beach_access_sharp),
+            ),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: <Widget>[
+          _buildMyTask(),
+          _buildMyTask(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMyTask() {
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: Stack(
+          children: [
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                Column(
+                  children: [
+                    Expanded(child: _buildTodoListContent()),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                      right: DeviceUtils.getScaledWidth(context, 5),
+                      bottom: DeviceUtils.getScaledHeight(context, 2)),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => AddTodoPage()));
+                    },
+                    child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.newButtonColor,
+                        ),
+                        child: Padding(
+                            padding: EdgeInsets.all(
+                                DeviceUtils.getScaledWidth(context, 3)),
+                            child: Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: DeviceUtils.getScaledWidth(context, 8),
+                            ))),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                        right: DeviceUtils.getScaledWidth(context, 5),
-                        bottom: DeviceUtils.getScaledHeight(context, 2)),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => AddTodoPage()));
-                      },
-                      child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.newButtonColor,
-                          ),
-                          child: Padding(
-                              padding: EdgeInsets.all(
-                                  DeviceUtils.getScaledWidth(context, 3)),
-                              child: Icon(
-                                Icons.add,
-                                color: Colors.white,
-                                size: DeviceUtils.getScaledWidth(context, 8),
-                              ))),
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
+                ),
+              ],
+            )
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFamilyListContent() {
+  Widget _navigate(BuildContext context, int status) {
+    Future.delayed(Duration(seconds: 2), () {
+      // _onWillPopPaymentDialog(status);
+      /*showOfferPaymentDialog(
+          context: context,
+          status: status,
+          message: _paymentStore.paymentMessage,
+          businessId: _paymentStore.businessId,
+          storeId: _paymentStore.storeId);*/
+    });
+
+    return Container();
+  }
+
+  Future<bool> _onWillPopPaymentDialog(
+      userName, desc, date, googleLink, document) async {
+    return (await showOfferPaymentDialog(
+            context: context,
+            userName: userName,
+            desc: desc,
+            date: date,
+            googleLink: googleLink,
+            document: document)) ??
+        false;
+  }
+
+  Widget _buildTodoListContent() {
     return Container(
       color: AppColors.violetFaint,
       child: Column(
         children: [
-          Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppColors.violet, AppColors.violetFaint],
-                ),
-              ),
-              child: _buildTitle()),
           // SizedBox(
           //   height: DeviceUtils.getScaledHeight(context, 2),
           // ),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(
-                          DeviceUtils.getScaledWidth(context, 5)),
-                      topRight: Radius.circular(
-                          DeviceUtils.getScaledWidth(context, 5)))),
+                color: Colors.white,
+                // borderRadius: BorderRadius.only(
+                //     topLeft: Radius.circular(
+                //         DeviceUtils.getScaledWidth(context, 5)),
+                //     topRight: Radius.circular(
+                //         DeviceUtils.getScaledWidth(context, 5)))),
+              ),
               child: Padding(
                 padding: EdgeInsets.symmetric(
                     vertical: DeviceUtils.getScaledHeight(context, 2),
@@ -160,14 +220,21 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     itemBuilder: (BuildContext context, int index) {
                       return TodoListCard(
                         firstName: familyList[index].firstName,
-                        lastName: familyList[index].lastName,
-                        mobile: familyList[index].number,
-                        address: familyList[index].addres,
+                        lastName: familyList[index].desc,
+                        mobile: familyList[index].date,
+                        address: familyList[index].googleLink,
                         ontap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => AddTodoPage()));
+                          _onWillPopPaymentDialog(
+                              familyList[index].firstName,
+                              familyList[index].desc,
+                              familyList[index].date,
+                              familyList[index].googleLink,
+                              familyList[index].document);
+
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => AddTodoPage()));
                         },
                       );
                     },
@@ -204,9 +271,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
 class Family {
   String firstName;
-  String lastName;
-  String addres;
-  String number;
+  String desc;
+  String date;
+  String googleLink;
+  String document;
 
-  Family(this.firstName, this.lastName, this.addres, this.number);
+  Family(this.firstName, this.desc, this.date, this.googleLink, this.document);
 }

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:send_remider_to_user/constants/colors.dart';
@@ -376,7 +378,11 @@ class _AddTodoPageState extends State<AddTodoPage> {
                                                       .getScaledHeight(
                                                           context, 2),
                                                 ),
-                                                _sendButton(),
+                                                _button(
+                                                    () {},
+                                                    AppLocalizations.of(context)
+                                                        .translate(
+                                                            'register_next')),
                                                 SizedBox(
                                                   height: DeviceUtils
                                                       .getScaledHeight(
@@ -422,6 +428,65 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
   }
 
+  XFile? image;
+
+  final ImagePicker picker = ImagePicker();
+
+  //we can upload image from camera or from gallery based on parameter
+  Future getImage(ImageSource media) async {
+    var img = await picker.pickImage(source: media);
+
+    setState(() {
+      image = img;
+    });
+  }
+
+  //show popup dialog
+  void myAlert() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            title: Text('Please choose media to select'),
+            content: Container(
+              height: MediaQuery.of(context).size.height / 6,
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    //if user click this button, user can upload image from gallery
+                    onPressed: () {
+                      Navigator.pop(context);
+                      getImage(ImageSource.gallery);
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.image),
+                        Text('From Gallery'),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    //if user click this button. user can upload image from camera
+                    onPressed: () {
+                      Navigator.pop(context);
+                      getImage(ImageSource.camera);
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.camera),
+                        Text('From Camera'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   Widget _buildTodo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,7 +519,58 @@ class _AddTodoPageState extends State<AddTodoPage> {
         SizedBox(
           height: DeviceUtils.getScaledHeight(context, 2),
         ),
+        _button(() {
+          myAlert();
+        }, AppLocalizations.of(context).translate('register_add_image')),
 
+        SizedBox(
+          height: DeviceUtils.getScaledHeight(context, 3),
+        ),
+        image != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    //to show image, you type like this.
+                    File(image!.path),
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: 300,
+                  ),
+                ),
+              )
+            : Container(),
+        SizedBox(
+          height: DeviceUtils.getScaledHeight(context, 3),
+        ),
+        _button(() async {
+          // opens storage to pick files and the picked file or files
+          // are assigned into result and if no file is chosen result is null.
+          // you can also toggle "allowMultiple" true or false depending on your need
+          final result =
+              await FilePicker.platform.pickFiles(allowMultiple: false);
+
+          // if no file is picked
+          if (result == null) return;
+          if (result != null) {
+            setState(() {
+              file = File(result.files.first.path!);
+            });
+          } else {
+            // User canceled the picker
+          }
+          // we will log the name, size and path of the
+          // first picked file (if multiple are selected)
+          print(result.files.first.name);
+          print(result.files.first.size);
+          print(result.files.first.path);
+        }, AppLocalizations.of(context).translate('register_add_image')),
+
+        SizedBox(
+          height: DeviceUtils.getScaledHeight(context, 3),
+        ),
+        file != null ? Text(file!.path) : Container(),
         SizedBox(
           height: DeviceUtils.getScaledHeight(context, 3),
         ),
@@ -462,6 +578,14 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
   }
 
+  File? file;
+// FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+// if (result != null) {
+//   File file = File(result.files.single.path);
+// } else {
+//   // User canceled the picker
+// }
   bool toDateTimeClick = false;
   bool fromDateTimeClick = false;
   Widget _buildDateField() {
@@ -572,96 +696,6 @@ class _AddTodoPageState extends State<AddTodoPage> {
         setState(() {});
       } else {}
     }
-  }
-
-  Widget _buildErrorLabel(String text) {
-    return Padding(
-      padding: EdgeInsets.only(left: DeviceUtils.getScaledWidth(context, 3.5)),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.subtitle1!.copyWith(
-            color: AppColors.noteColor,
-            fontSize: DeviceUtils.getScaledWidth(context, 3)),
-        textAlign: TextAlign.start,
-      ),
-    );
-  }
-
-  Widget _buildAreaStreetField() {
-    return Observer(
-      builder: (context) {
-        return Container(
-          /*padding: EdgeInsets.symmetric(
-            horizontal: DeviceUtils.getScaledWidth(context, 3.2),
-          ),*/
-          child: CustomIconTextFieldWidget(
-            focusNode: _streetFocusNode,
-            padding: EdgeInsets.zero,
-            hintColor: AppColors.hintColor,
-            hint: AppLocalizations.of(context).translate('address_enter_area'),
-            inputType: TextInputType.name,
-
-            isIcon: true,
-            // prefixText: '+91   ',
-            maxLength: 40,
-            iconColor: Colors.black,
-            textController: _areaController,
-            inputAction: TextInputAction.done,
-            autoFocus: false,
-            onChanged: (value) {
-              _formStore.setStreetName(value);
-
-              // });
-            },
-            errorText: _formStore.formErrorStore.streetName,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPincodeField() {
-    return Observer(
-      builder: (context) {
-        return Container(
-          /*padding: EdgeInsets.symmetric(
-            horizontal: DeviceUtils.getScaledWidth(context, 3.2),
-          ),*/
-          child: CustomIconTextFieldWidget(
-            focusNode: Platform.isIOS ? numberFocusNode : null,
-            inputFormatter: [
-              FilteringTextInputFormatter.digitsOnly,
-              // FilteringTextInputFormatter.deny(RegExp(r'^0+')),
-              // FilteringTextInputFormatter.deny(RegExp(r"^|\-|\,")),
-              // FilteringTextInputFormatter.allow(RegExp("[0-9]"))
-            ],
-
-            padding: EdgeInsets.zero,
-            hintColor: AppColors.hintColor,
-            hint:
-                AppLocalizations.of(context).translate('address_enter_pincode'),
-            inputType: TextInputType.number,
-
-            isIcon: true,
-            // prefixText: '+91   ',
-            maxLength: 6,
-            iconColor: Colors.black,
-            textController: _pinCodeController,
-            inputAction: TextInputAction.done,
-            autoFocus: false,
-            onChanged: (value) {
-              _formStore.setPinCode(value);
-
-              // });
-            },
-            onFieldSubmitted: (value) {
-              FocusScope.of(context).requestFocus(_flatFocusNode);
-            },
-            errorText: _formStore.formErrorStore.pincode,
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildFirstNameField() {
@@ -787,188 +821,12 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
   }
 
-  // Widget _buildYourAgeField() {
-  //   return Observer(
-  //     builder: (context) {
-  //       return Container(
-  //         /*padding: EdgeInsets.symmetric(
-  //           horizontal: DeviceUtils.getScaledWidth(context, 3.2),
-  //         ),*/
-  //         child: NumberTextField(
-  //             focusNode: _ageFocusNode,
-
-  //             // padding: EdgeInsets.zero,
-  //             hintColor: AppColors.hintColor,
-  //             hint: AppLocalizations.of(context).translate('register_your_age'),
-  //             inputType: TextInputType.number,
-
-  //             // prefixText: '+91   ',
-  //             // maxLength: 10,
-  //             // iconColor: Colors.black,
-  //             controller: _ageController,
-  //             autoFocus: false,
-  //             onChanged: (value) {
-  //               // setState(() {
-  //               //   _tryPasteCurrentPhone();
-  //               // });
-
-  //               // if(value.toString().isEmpty) {
-  //               // _formStore.setMobile(_firstNameController.text);
-  //               //}
-
-  //               // setState(() {
-  //               _formStore.setAge(value.toString());
-
-  //               // });
-  //             },
-  //             errorText: _formStore.formErrorStore.age),
-  //       );
-  //     },
-  //   );
-  // }
-
-  Widget _buildHouseFlatNoField() {
-    return Observer(
-      builder: (context) {
-        return Container(
-          /*padding: EdgeInsets.symmetric(
-            horizontal: DeviceUtils.getScaledWidth(context, 3.2),
-          ),*/
-          child: CustomIconTextFieldWidget(
-            focusNode: _flatFocusNode,
-            padding: EdgeInsets.zero,
-            hintColor: AppColors.hintColor,
-            hint: AppLocalizations.of(context)
-                .translate('address_enter_flat_house'),
-            inputType: TextInputType.name,
-
-            isIcon: true,
-            // prefixText: '+91   ',
-            maxLength: 40,
-            iconColor: Colors.black,
-            textController: _flatHouseController,
-            inputAction: TextInputAction.done,
-            autoFocus: false,
-            onChanged: (value) {
-              _formStore.setFlatName(value);
-              // });
-            },
-            onFieldSubmitted: (value) {
-              FocusScope.of(context).requestFocus(_streetFocusNode);
-            },
-            errorText: _formStore.formErrorStore.flatName,
-          ),
-        );
-      },
-    );
-  }
-
-  // Widget _buildStateField() {
-  //   return Observer(
-  //     builder: (context) {
-  //       return Container(
-  //         /*padding: EdgeInsets.symmetric(
-  //           horizontal: DeviceUtils.getScaledWidth(context, 3.2),
-  //         ),*/
-  //         child: CustomIconTextFieldWidget(
-  //           focusNode: Platform.isIOS ? numberFocusNode : null,
-  //           padding: EdgeInsets.zero,
-  //           hintColor: AppColors.hintColor,
-  //           hint:
-  //               AppLocalizations.of(context).translate('address_select_state'),
-  //           inputType: TextInputType.text,
-
-  //           isIcon: true,
-  //           // prefixText: '+91   ',
-  //           maxLength: 10,
-  //           iconColor: Colors.black,
-  //           textController: _stateController,
-  //           inputAction: TextInputAction.done,
-  //           autoFocus: false,
-  //           onChanged: (value) {
-  //             _formStore.formErrorStore.mobile = null;
-  //             // });
-  //           },
-  //           errorText: _formStore.formErrorStore.mobile,
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  Widget _buildSaveAddressField() {
-    return Observer(
-      builder: (context) {
-        return Container(
-          /*padding: EdgeInsets.symmetric(
-            horizontal: DeviceUtils.getScaledWidth(context, 3.2),
-          ),*/
-          child: CustomIconTextFieldWidget(
-            focusNode: Platform.isIOS ? numberFocusNode : null,
-            padding: EdgeInsets.zero,
-            hintColor: AppColors.hintColor,
-            hint:
-                AppLocalizations.of(context).translate('address_your_address'),
-            inputType: TextInputType.name,
-
-            isIcon: true,
-            // prefixText: '+91   ',
-            maxLength: 50,
-            iconColor: Colors.black,
-            textController: _saveAsController,
-            inputAction: TextInputAction.done,
-            autoFocus: false,
-            onChanged: (value) {
-              _formStore.formErrorStore.mobile = null;
-              // });
-            },
-            errorText: _formStore.formErrorStore.mobile,
-          ),
-        );
-      },
-    );
-  }
-
-  // Widget _buildTodoSelfText() {
-  //   return Text(
-  //     count == 0
-  //         ? AppLocalizations.of(context).translate('contact_details')
-  //         : AppLocalizations.of(context).translate('address'),
-  //     style: Theme.of(context).textTheme.headline6!.copyWith(
-  //         fontSize: DeviceUtils.getScaledWidth(context, 7),
-  //         color: Colors.white),
-  //     textAlign: TextAlign.start,
-  //   );
-  // }
-
-  Widget _navigate(BuildContext context) {
-    // _registerStore.setSuccess(false);
-    // _resendStore.setSuccess(false);
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setBool(Preferences.is_logged_in, true);
-      try {
-        // prefs.setString(Preferences.mobile, _userMobileController.text);
-        // _formStore.setMobile(_userMobileController.text);
-        Future.delayed(Duration(milliseconds: 0), () {
-          DeviceUtils.hideKeyboard(context);
-          Navigator.of(context).pop();
-        });
-      } catch (e) {
-        print(e);
-      }
-    });
-
-    return Container();
-  }
-
   int count = 0;
-  Widget _sendButton() {
+  Widget _button(ontap, text) {
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: DeviceUtils.getScaledWidth(context, 7)),
-      child: ButtonWidget(
-          onPressed: () {},
-          text: AppLocalizations.of(context).translate('register_next')),
+      child: ButtonWidget(onPressed: ontap, text: text),
     );
   }
 
