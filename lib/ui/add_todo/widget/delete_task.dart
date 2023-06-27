@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:send_remider_to_user/constants/assets.dart';
@@ -8,13 +9,7 @@ import 'package:send_remider_to_user/constants/colors.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:send_remider_to_user/utils/locale/app_localization.dart';
 
-detailsDialog(
-    {BuildContext? context,
-    String? userName,
-    String? desc,
-    String? googleLink,
-    String? date,
-    String? document}) {
+deleteTaskDialog({BuildContext? context, String? userName, final ontap}) {
   showDialog(
     barrierDismissible: false,
     context: context!,
@@ -24,39 +19,32 @@ detailsDialog(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
           child: Dialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(15.0))),
-            child: DetailsContent(
-              userName: userName,
-              googleLink: googleLink,
-              document: document,
-              date: date,
-              desc: desc,
-            ),
-          ),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15.0))),
+              child: DeleteTask(
+                ontap: ontap,
+                userName: userName,
+              )),
         ),
       );
     },
   );
 }
 
-class DetailsContent extends StatefulWidget {
-  final userName, desc, googleLink, document, date;
-  const DetailsContent(
-      {Key? key,
-      this.userName,
-      this.desc,
-      this.googleLink,
-      this.document,
-      this.date})
-      : super(key: key);
+class DeleteTask extends StatefulWidget {
+  final userName, ontap;
+  const DeleteTask({
+    Key? key,
+    this.userName,
+    this.ontap,
+  }) : super(key: key);
 
   @override
-  State<DetailsContent> createState() => _DetailsContentState();
+  State<DeleteTask> createState() => _DeleteTaskState();
 }
 
-class _DetailsContentState extends State<DetailsContent> {
+class _DeleteTaskState extends State<DeleteTask> {
   @override
   void initState() {
     super.initState();
@@ -80,72 +68,29 @@ class _DetailsContentState extends State<DetailsContent> {
         padding: EdgeInsets.symmetric(
             vertical: DeviceUtils.getScaledHeight(context, 2.2)),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildTextWidget('Name : ', widget.userName),
             SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            _buildTextWidget('Task : ', widget.desc),
-
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            _buildTextWidget('Date & Time : ', widget.date),
-
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
+            Text(
+              "Do you want to delete ${widget.userName}",
+            ),
+            SizedBox(height: DeviceUtils.getScaledHeight(context, 4)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
                   Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Google Link : ',
-                      style: Theme.of(context).textTheme.headline6!.copyWith(
-                          fontSize: DeviceUtils.getScaledWidth(context, 4)),
-                      textAlign: TextAlign.start,
+                    child: TextButton(
+                      child: Text("No"),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                   Expanded(
-                    flex: 3,
-                    child: Text(
-                      widget.googleLink,
-                      style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                          fontSize: DeviceUtils.getScaledWidth(context, 4),
-                          color: Colors.blue),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
+                      child: TextButton(
+                          child: Text("Yes"), onPressed: widget.ontap)),
                 ],
               ),
-            ),
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            // Text(
-            //   widget.document,
-            //   style: Theme.of(context)
-            //       .textTheme
-            //       .headline6!
-            //       .copyWith(fontSize: DeviceUtils.getScaledWidth(context, 4)),
-            //   textAlign: TextAlign.center,
-            // ),
-            widget.document != null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        //to show image, you type like this.
-                        File(widget.document!),
-                        fit: BoxFit.cover,
-                        width: MediaQuery.of(context).size.width,
-                        height: 300,
-                      ),
-                    ),
-                  )
-                : Container(),
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildOk(context),
             ),
           ],
         ),

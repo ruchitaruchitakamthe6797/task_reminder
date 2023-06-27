@@ -2,17 +2,22 @@ import 'package:send_remider_to_user/constants/colors.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:flutter/material.dart';
 
-class TodoListCard extends StatelessWidget {
-  final firstName, lastName, mobile, address, ontap;
+class TodoListCard extends StatefulWidget {
+  final userName, desc, time, googleLink, ontap;
   const TodoListCard(
       {Key? key,
-      this.firstName,
-      this.lastName,
-      this.mobile,
-      this.address,
+      this.userName,
+      this.desc,
+      this.time,
+      this.googleLink,
       this.ontap})
       : super(key: key);
 
+  @override
+  State<TodoListCard> createState() => _TodoListCardState();
+}
+
+class _TodoListCardState extends State<TodoListCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -23,7 +28,7 @@ class TodoListCard extends StatelessWidget {
               BorderRadius.circular(DeviceUtils.getScaledWidth(context, 2)),
         ),
         child: GestureDetector(
-          onTap: ontap,
+          onTap: widget.ontap,
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.addressListCardColor,
@@ -62,48 +67,17 @@ class TodoListCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '$firstName',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .subtitle2!
-                                    .copyWith(
-                                        fontSize: DeviceUtils.getScaledWidth(
-                                            context, 4),
-                                        fontWeight: FontWeight.w600),
-                                textAlign: TextAlign.start,
-                              ),
+                              _buildTextWidget('Name : ', widget.userName),
                               SizedBox(
                                 height:
                                     DeviceUtils.getScaledHeight(context, .5),
                               ),
-                              Text(
-                                lastName,
-                                maxLines: 2,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .subtitle1!
-                                    .copyWith(
-                                        fontSize: DeviceUtils.getScaledWidth(
-                                            context, 3.5)),
-                                textAlign: TextAlign.start,
-                              ),
+                              _buildTextWidget('Task : ', widget.desc),
                               SizedBox(
                                 height:
                                     DeviceUtils.getScaledHeight(context, .5),
                               ),
-                              Text(
-                                mobile,
-                                // overflow: TextOverflow.ellipsis,
-                                // maxLines: 4,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .subtitle1!
-                                    .copyWith(
-                                        fontSize: DeviceUtils.getScaledWidth(
-                                            context, 3.5)),
-                                textAlign: TextAlign.start,
-                              ),
+                              _buildTextWidget('Date & Time : ', widget.time),
                             ],
                           ),
                         ),
@@ -118,5 +92,34 @@ class TodoListCard extends StatelessWidget {
             ),
           ),
         ));
+  }
+
+  Widget _buildTextWidget(name, value) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            name,
+            style: Theme.of(context)
+                .textTheme
+                .headline6!
+                .copyWith(fontSize: DeviceUtils.getScaledWidth(context, 4)),
+            textAlign: TextAlign.start,
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            style: Theme.of(context)
+                .textTheme
+                .subtitle1!
+                .copyWith(fontSize: DeviceUtils.getScaledWidth(context, 4)),
+            textAlign: TextAlign.start,
+          ),
+        ),
+      ],
+    );
   }
 }

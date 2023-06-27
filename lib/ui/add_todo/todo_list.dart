@@ -1,10 +1,13 @@
+import 'package:hive_flutter/adapters.dart';
 import 'package:send_remider_to_user/constants/colors.dart';
 import 'package:send_remider_to_user/data/sharedpref/constants/preferences.dart';
 import 'package:send_remider_to_user/stores/form/form_store.dart';
 import 'package:send_remider_to_user/stores/theme/theme_store.dart';
 import 'package:send_remider_to_user/ui/add_todo/add_todo.dart';
+import 'package:send_remider_to_user/ui/add_todo/widget/delete_task.dart';
 import 'package:send_remider_to_user/ui/add_todo/widget/show_dailogue.dart';
 import 'package:send_remider_to_user/ui/add_todo/widget/todo_list_card.dart';
+import 'package:send_remider_to_user/ui/contacts/contacts.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:send_remider_to_user/utils/locale/app_localization.dart';
 import 'package:send_remider_to_user/widgets/title_with_back_button.dart';
@@ -152,29 +155,21 @@ class _TodoListScreenState extends State<TodoListScreen>
     );
   }
 
-  Widget _navigate(BuildContext context, int status) {
-    Future.delayed(Duration(seconds: 2), () {
-      // _onWillPopPaymentDialog(status);
-      /*showOfferPaymentDialog(
-          context: context,
-          status: status,
-          message: _paymentStore.paymentMessage,
-          businessId: _paymentStore.businessId,
-          storeId: _paymentStore.storeId);*/
-    });
-
-    return Container();
-  }
-
-  Future<bool> _onWillPopPaymentDialog(
+  Future<bool> _onWillPopTaskDetails(
       userName, desc, date, googleLink, document) async {
-    return (await showOfferPaymentDialog(
+    return (await detailsDialog(
             context: context,
             userName: userName,
             desc: desc,
             date: date,
             googleLink: googleLink,
             document: document)) ??
+        false;
+  }
+
+  Future<bool> _onWillPopDelete(userName, ontap) async {
+    return (await deleteTaskDialog(
+            context: context, userName: userName, ontap: ontap)) ??
         false;
   }
 
@@ -207,38 +202,129 @@ class _TodoListScreenState extends State<TodoListScreen>
                     height: DeviceUtils.getScaledHeight(context, 1),
                   ),
                   Expanded(
-                      child: ListView.separated(
-                    shrinkWrap: true,
-                    // physics: NeverScrollableScrollPhysics(),
-                    // itemCount: nameLsit.length,
-                    itemCount: familyList.length,
+                      child: ValueListenableBuilder(
+                    valueListenable:
+                        Hive.box<Contact>(contactsBoxName).listenable(),
+                    builder: (context, Box<Contact> box, _) {
+                      if (box.values.isEmpty)
+                        return Center(
+                          child: Text("No contacts"),
+                        );
+                      return ListView.builder(
+                        itemCount: box.length,
+                        itemBuilder: (context, index) {
+                          Contact? c = box.getAt(index);
+                          // String? relationship = relationships[c!.relationship];
+                          return InkWell(
+                            onLongPress: () {
+                              _onWillPopDelete(c.name, () async {
+                                DeviceUtils.hideKeyboard(context);
+                                Navigator.of(context).pop();
+                                await box.deleteAt(index);
+                              });
+                            },
+                            child: TodoListCard(
+                              userName: c!.name,
+                              desc: c.desc,
+                              time: c.time,
+                              googleLink: c.googleLink,
+                              ontap: () {
+                                _onWillPopTaskDetails(
+                                  c.name,
+                                  c.desc,
+                                  c.time,
+                                  c.googleLink,
+                                  c.image,
+                                );
 
-                    separatorBuilder: (BuildContext context, int index) =>
-                        SizedBox(
-                      height: DeviceUtils.getScaledHeight(context, 1.5),
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      return TodoListCard(
-                        firstName: familyList[index].firstName,
-                        lastName: familyList[index].desc,
-                        mobile: familyList[index].date,
-                        address: familyList[index].googleLink,
-                        ontap: () {
-                          _onWillPopPaymentDialog(
-                              familyList[index].firstName,
-                              familyList[index].desc,
-                              familyList[index].date,
-                              familyList[index].googleLink,
-                              familyList[index].document);
-
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => AddTodoPage()));
+                                // Navigator.push(
+                                //     context,
+                                //     MaterialPageRoute(
+                                //         builder: (context) => AddTodoPage()));
+                              },
+                            ),
+                          );
+                          // InkWell(
+                          //   onLongPress: () {
+                          //     showDialog(
+                          //       context: context,
+                          //       barrierDismissible: true,
+                          //       builder: (_) => AlertDialog(
+                          //         content: Text(
+                          //           "Do you want to delete ${c.desc}?",
+                          //         ),
+                          //         actions: <Widget>[
+                          //           TextButton(
+                          //             child: Text("No"),
+                          //             onPressed: () => Navigator.of(context).pop(),
+                          //           ),
+                          //           TextButton(
+                          //             child: Text("Yes"),
+                          //             onPressed: () async {
+                          //               // Navigator.of(context).pop();
+                          //               await box.deleteAt(index);
+                          //             },
+                          //           ),
+                          //         ],
+                          //       ),
+                          //     );
+                          //   },
+                          //   child: Card(
+                          //     child: Padding(
+                          //       padding: const EdgeInsets.all(8.0),
+                          //       child: Column(
+                          //         crossAxisAlignment: CrossAxisAlignment.start,
+                          //         children: <Widget>[
+                          //           _buildDivider(),
+                          //           Text(c!.name),
+                          //           _buildDivider(),
+                          //           Text(c.desc),
+                          //           _buildDivider(),
+                          //           Text("Age: ${c.time}"),
+                          //           _buildDivider(),
+                          //           // Text("Relationship: $relationship"),
+                          //           _buildDivider(),
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
+                          // );
                         },
                       );
                     },
-                  )),
+                  ))
+                  //     ListView.separated(
+                  //   shrinkWrap: true,
+                  //   // physics: NeverScrollableScrollPhysics(),
+                  //   // itemCount: nameLsit.length,
+                  //   itemCount: familyList.length,
+
+                  //   separatorBuilder: (BuildContext context, int index) =>
+                  //       SizedBox(
+                  //     height: DeviceUtils.getScaledHeight(context, 1.5),
+                  //   ),
+                  //   itemBuilder: (BuildContext context, int index) {
+                  //     return TodoListCard(
+                  //       firstName: familyList[index].firstName,
+                  //       lastName: familyList[index].desc,
+                  //       mobile: familyList[index].date,
+                  //       address: familyList[index].googleLink,
+                  //       ontap: () {
+                  //         _onWillPopPaymentDialog(
+                  //             familyList[index].firstName,
+                  //             familyList[index].desc,
+                  //             familyList[index].date,
+                  //             familyList[index].googleLink,
+                  //             familyList[index].document);
+
+                  //         // Navigator.push(
+                  //         //     context,
+                  //         //     MaterialPageRoute(
+                  //         //         builder: (context) => AddTodoPage()));
+                  //       },
+                  //     );
+                  //   },
+                  // )),
                 ]),
               ),
             ),

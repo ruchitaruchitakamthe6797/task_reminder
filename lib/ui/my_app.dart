@@ -5,6 +5,7 @@ import 'package:send_remider_to_user/di/components/service_locator.dart';
 import 'package:send_remider_to_user/stores/language/language_store.dart';
 import 'package:send_remider_to_user/stores/theme/theme_store.dart';
 import 'package:send_remider_to_user/ui/add_todo/todo_list.dart';
+import 'package:send_remider_to_user/ui/contacts/contacts.dart';
 import 'package:send_remider_to_user/utils/locale/app_localization.dart';
 import 'package:send_remider_to_user/utils/routes/routes.dart';
 import 'package:calendar_view/calendar_view.dart';
@@ -58,6 +59,8 @@ class MyApp extends StatelessWidget {
               // home: _userStore.isLoggedIn ? HomeScreen() : LoginScreen(),
               // home: SplashScreen(),
               home: TodoListScreen(),
+              // home: MyApp1(),
+
             ),
           );
         },
