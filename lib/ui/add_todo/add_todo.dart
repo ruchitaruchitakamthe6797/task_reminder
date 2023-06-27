@@ -612,9 +612,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
       if (formattedDate.isNotEmpty) {
         if (toDateTimeClick == true) {
           _toDateController.text = formattedDate.toString();
-          String time = DateFormat('kk:mm').format(dateTime!).toString();
           scheduleTime = dateTime;
-          print('rrrrrrrrrrrrrrrrrrrrrr$time');
         }
         setState(() {});
       } else {}
