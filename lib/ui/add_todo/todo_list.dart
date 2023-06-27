@@ -156,20 +156,21 @@ class _TodoListScreenState extends State<TodoListScreen>
   }
 
   Future<bool> _onWillPopTaskDetails(
-      userName, desc, date, googleLink, document) async {
+      userName, desc, date, googleLink, document, remdName) async {
     return (await detailsDialog(
             context: context,
             userName: userName,
             desc: desc,
             date: date,
             googleLink: googleLink,
-            document: document)) ??
+            document: document,
+            remdName: remdName)) ??
         false;
   }
 
-  Future<bool> _onWillPopDelete(userName, ontap) async {
+  Future<bool> _onWillPopDelete(remdTitle, ontap) async {
     return (await deleteTaskDialog(
-            context: context, userName: userName, ontap: ontap)) ??
+            context: context, remdTitle: remdTitle, ontap: ontap)) ??
         false;
   }
 
@@ -217,7 +218,7 @@ class _TodoListScreenState extends State<TodoListScreen>
                           // String? relationship = relationships[c!.relationship];
                           return InkWell(
                             onLongPress: () {
-                              _onWillPopDelete(c.name, () async {
+                              _onWillPopDelete(c.reminderTitle, () async {
                                 DeviceUtils.hideKeyboard(context);
                                 Navigator.of(context).pop();
                                 await box.deleteAt(index);
@@ -228,14 +229,10 @@ class _TodoListScreenState extends State<TodoListScreen>
                               desc: c.desc,
                               time: c.time,
                               googleLink: c.googleLink,
+                              remdName: c.reminderTitle,
                               ontap: () {
-                                _onWillPopTaskDetails(
-                                  c.name,
-                                  c.desc,
-                                  c.time,
-                                  c.googleLink,
-                                  c.image,
-                                );
+                                _onWillPopTaskDetails(c.name, c.desc, c.time,
+                                    c.googleLink, c.image, c.reminderTitle);
 
                                 // Navigator.push(
                                 //     context,

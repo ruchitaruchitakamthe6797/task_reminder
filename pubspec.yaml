@@ -97,34 +97,22 @@ dependencies:
   firebase_analytics: any
   flutter_timezone: ^1.0.6
   device_info_plus: ^9.0.2
-  google_fonts: ^2.3.2
-  flutter_svg: ^2.0.5
-  pinput: ^2.2.31
   fluttertoast: ^8.2.1
-  avatar_view: ^1.0.1
-  custom_line_indicator_bottom_navbar: ^0.0.8
   flutter_rating_bar: ^4.0.1
-  expansion_widget: ^0.0.3
-  carousel_slider: ^4.2.1
-  another_stepper: ^1.2.2
   syncfusion_flutter_sliders: ^21.2.3
   flutter_xlider: ^3.5.0
-  emoji_rating_bar: ^0.0.2
   omni_datetime_picker: ^1.0.7
   dropdown_button2: ^2.1.0
   calendar_view: ^1.0.3
   date_picker_timeline: ^1.2.3
-  dotted_line: ^3.1.0
-  timelines: any
   geolocator: ^9.0.2
   geocoding: ^2.1.0
   permission_handler: ^10.2.0
-  flutter_blue: ^0.8.0
-  flutter_blue_plus: ^1.5.2
   device_info: ^2.0.0
   hive: any
   hive_flutter: any
   connectivity_plus: any
+  url_launcher: ^6.0.10
 
 dev_dependencies:
   flutter_test:

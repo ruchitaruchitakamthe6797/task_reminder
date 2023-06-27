@@ -172,7 +172,7 @@ class CustomIconTextFieldWidget extends StatelessWidget {
     this.isReadOnly = false,
     this.isPrefixText = false,
     this.prefixText = '',
-    this.maxLength = 50,
+    this.maxLength = 150,
     this.isIcon = true,
     this.suffixText = '',
     this.fontWeight,

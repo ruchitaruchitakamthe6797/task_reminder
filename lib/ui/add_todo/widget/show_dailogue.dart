@@ -7,6 +7,7 @@ import 'package:send_remider_to_user/constants/assets.dart';
 import 'package:send_remider_to_user/constants/colors.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:send_remider_to_user/utils/locale/app_localization.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 detailsDialog(
     {BuildContext? context,
@@ -14,6 +15,7 @@ detailsDialog(
     String? desc,
     String? googleLink,
     String? date,
+    String? remdName,
     String? document}) {
   showDialog(
     barrierDismissible: false,
@@ -28,12 +30,12 @@ detailsDialog(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(15.0))),
             child: DetailsContent(
-              userName: userName,
-              googleLink: googleLink,
-              document: document,
-              date: date,
-              desc: desc,
-            ),
+                userName: userName,
+                googleLink: googleLink,
+                document: document,
+                date: date,
+                desc: desc,
+                remdName: remdName),
           ),
         ),
       );
@@ -42,13 +44,14 @@ detailsDialog(
 }
 
 class DetailsContent extends StatefulWidget {
-  final userName, desc, googleLink, document, date;
+  final userName, desc, googleLink, document, date, remdName;
   const DetailsContent(
       {Key? key,
       this.userName,
       this.desc,
       this.googleLink,
       this.document,
+      this.remdName,
       this.date})
       : super(key: key);
 
@@ -79,78 +82,125 @@ class _DetailsContentState extends State<DetailsContent> {
       child: Padding(
         padding: EdgeInsets.symmetric(
             vertical: DeviceUtils.getScaledHeight(context, 2.2)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildTextWidget('Name : ', widget.userName),
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            _buildTextWidget('Task : ', widget.desc),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildTextWidget('Task Name : ', widget.remdName),
+              SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
+              _buildTextWidget('User Name : ', widget.userName),
+              SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
+              _buildTextWidget('Task Details : ', widget.desc),
 
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            _buildTextWidget('Date & Time : ', widget.date),
+              SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
+              _buildTextWidget('Date & Time : ', widget.date),
 
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Google Link : ',
-                      style: Theme.of(context).textTheme.headline6!.copyWith(
-                          fontSize: DeviceUtils.getScaledWidth(context, 4)),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      widget.googleLink,
-                      style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                          fontSize: DeviceUtils.getScaledWidth(context, 4),
-                          color: Colors.blue),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            // Text(
-            //   widget.document,
-            //   style: Theme.of(context)
-            //       .textTheme
-            //       .headline6!
-            //       .copyWith(fontSize: DeviceUtils.getScaledWidth(context, 4)),
-            //   textAlign: TextAlign.center,
-            // ),
-            widget.document != null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        //to show image, you type like this.
-                        File(widget.document!),
-                        fit: BoxFit.cover,
-                        width: MediaQuery.of(context).size.width,
-                        height: 300,
+              SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        'Google Link : ',
+                        style: Theme.of(context).textTheme.headline6!.copyWith(
+                            fontSize: DeviceUtils.getScaledWidth(context, 4)),
+                        textAlign: TextAlign.start,
                       ),
                     ),
-                  )
-                : Container(),
-            SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildOk(context),
-            ),
-          ],
+                    Expanded(
+                      flex: 3,
+                      child: GestureDetector(
+                        onTap: () {
+                          openURL(widget.googleLink);
+                        },
+                        child: Text(
+                          widget.googleLink,
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle1!
+                              .copyWith(
+                                  fontSize:
+                                      DeviceUtils.getScaledWidth(context, 4),
+                                  color: Colors.blue),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
+              // Text(
+              //   widget.document,
+              //   style: Theme.of(context)
+              //       .textTheme
+              //       .headline6!
+              //       .copyWith(fontSize: DeviceUtils.getScaledWidth(context, 4)),
+              //   textAlign: TextAlign.center,
+              // ),
+              widget.document != null
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          //to show image, you type like this.
+                          File(widget.document!),
+                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width,
+                          height: 300,
+                        ),
+                      ),
+                    )
+                  : Container(),
+              SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildOk(context),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  _launchURL() async {
+    final Uri url = Uri.parse(widget.googleLink);
+    // if (!await launchUrl(url)) {
+    //   throw Exception('Could not launch $url');
+    // }
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      // can't launch url
+    }
+  }
+
+  launchURL() async {
+    // await _analytics?.logEvent(name: "foxpe_location_merchant");
+    final String url = widget.googleLink;
+
+    final String encodedURl = Uri.encodeFull(url);
+
+    if (await canLaunch(encodedURl)) {
+      await launch(encodedURl);
+    } else {
+      print('Could not launch $encodedURl');
+      throw 'Could not launch $encodedURl';
+    }
+  }
+
+  Future<void> openURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   Widget _buildTextWidget(name, value) {

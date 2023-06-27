@@ -33,10 +33,10 @@ class Contact {
   String googleLink;
   @HiveField(4)
   String? image;
-  // @HiveField(5)
-  // File file;
+  @HiveField(5)
+  String reminderTitle;
 
-  Contact(this.name, this.time, this.desc, this.googleLink,this.image);
+  Contact(this.name, this.time, this.desc, this.googleLink,this.image,this.reminderTitle);
 }
 
 // void main() async {

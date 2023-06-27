@@ -1,15 +1,10 @@
-import 'dart:io';
 import 'dart:ui';
-
-import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:send_remider_to_user/constants/assets.dart';
 import 'package:send_remider_to_user/constants/colors.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:send_remider_to_user/utils/locale/app_localization.dart';
 
-deleteTaskDialog({BuildContext? context, String? userName, final ontap}) {
+deleteTaskDialog({BuildContext? context, String? remdTitle, final ontap}) {
   showDialog(
     barrierDismissible: false,
     context: context!,
@@ -24,7 +19,7 @@ deleteTaskDialog({BuildContext? context, String? userName, final ontap}) {
                   borderRadius: BorderRadius.all(Radius.circular(15.0))),
               child: DeleteTask(
                 ontap: ontap,
-                userName: userName,
+                remdTitle: remdTitle,
               )),
         ),
       );
@@ -33,10 +28,10 @@ deleteTaskDialog({BuildContext? context, String? userName, final ontap}) {
 }
 
 class DeleteTask extends StatefulWidget {
-  final userName, ontap;
+  final remdTitle, ontap;
   const DeleteTask({
     Key? key,
-    this.userName,
+    this.remdTitle,
     this.ontap,
   }) : super(key: key);
 
@@ -66,6 +61,7 @@ class _DeleteTaskState extends State<DeleteTask> {
       // padding: EdgeInsets.symmetric(horizontal:DeviceUtils.getScaledWidth(context, 10.2)),
       child: Padding(
         padding: EdgeInsets.symmetric(
+            horizontal: DeviceUtils.getScaledWidth(context, 10),
             vertical: DeviceUtils.getScaledHeight(context, 2.2)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -73,7 +69,7 @@ class _DeleteTaskState extends State<DeleteTask> {
           children: [
             SizedBox(height: DeviceUtils.getScaledHeight(context, 2)),
             Text(
-              "Do you want to delete ${widget.userName}",
+              "Do you want to delete ${widget.remdTitle}",
             ),
             SizedBox(height: DeviceUtils.getScaledHeight(context, 4)),
             Padding(

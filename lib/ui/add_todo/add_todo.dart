@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +9,7 @@ import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:send_remider_to_user/constants/colors.dart';
 import 'package:send_remider_to_user/constants/keyboardoverlay.dart';
 import 'package:send_remider_to_user/data/sharedpref/constants/preferences.dart';
+import 'package:send_remider_to_user/main.dart';
 import 'package:send_remider_to_user/responsive.dart';
 import 'package:send_remider_to_user/stores/form/form_store.dart';
 import 'package:send_remider_to_user/stores/theme/theme_store.dart';
@@ -19,7 +22,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:send_remider_to_user/widgets/title_with_back_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 import '../contacts/contacts.dart';
 
 class AddTodoPage extends StatefulWidget {
@@ -37,6 +41,9 @@ class _AddTodoPageState extends State<AddTodoPage> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _toDateController = TextEditingController();
+  final TextEditingController _imageController = TextEditingController();
+  final TextEditingController _reminderTitleController =
+      TextEditingController();
 
   //stores:---------------------------------------------------------------------
   late ThemeStore _themeStore;
@@ -44,58 +51,60 @@ class _AddTodoPageState extends State<AddTodoPage> {
   final _formStore = FormStore();
   FocusNode numberFocusNode = FocusNode();
 
-  final List<String> items = [
-    'Pune',
-    'Nashik',
-    'Mumbai',
-    'Item4',
-    'Item5',
-    'Item6',
-    'Item7',
-    'Item8',
-  ];
-  final List<String> addressType = [
-    'Home',
-    'Temporary',
-    'Relatives',
-    'Current',
-    'Permanant',
-    'Hospital',
-  ];
-  final List<String> relationship = [
-    'Mother',
-    'Father',
-    'Grand Father',
-    'Grand Mother',
-    'Sister',
-    'Brother',
-    'Relative',
-    'Friend',
-  ];
-  String? selectedValue;
-  String? selectedAddressType;
-  String? selectedRelationship;
+  FlutterLocalNotificationsPlugin? _flutterLocalNotificationService;
 
-  String _mobile = '';
-  String? _currentAddress;
-  Position? _currentPosition;
-  bool _isStateError = false;
-  String? gender;
-  bool _isGenderError = false;
-  bool _isAddTypeError = false;
-  bool _isRelationshipError = false;
-
+//   @override
+//   void initState() {
+//     super.initState();
+//     _flutterLocalNotificationService = FlutterLocalNotificationsPlugin();
+// var initializationSettingsAndroid= AndroidInitializationSettings('app_icon');
+// var initializationSettingsIOS=IOSInitializationSettings();
+// initializationSettings=InitializationSettings(initializationSettingsAndroid,initializationSettingsIOS);
+//     _flutterLocalNotificationService.initialize(initializationSettings,selectNotification:)
+//   }
+  FlutterLocalNotificationsPlugin? _local = null;
   @override
   void initState() {
     super.initState();
-    numberFocusNode.addListener(() {
-      bool hasFocus = numberFocusNode.hasFocus;
-      if (hasFocus) {
-        KeyboardOverlay.showOverlay(context);
-      } else {
-        KeyboardOverlay.removeOverlay();
-      }
-    });
+    _initLocalNotifications();
+  }
+
+  Future<void> _initLocalNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    final InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    _local = FlutterLocalNotificationsPlugin();
+    await _local!.initialize(initializationSettings);
+  }
+
+  DateTime? scheduleTime;
+  Future<void> scheduleNotification() async {
+    if (_local == null) {
+      return; // Return if _local is not initialized
+    }
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'your_channel_id',
+      'your_channel_name',
+      // 'your_channel_description',
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    // Calculate the notification trigger time by adding 15 minutes to the current time
+    final scheduledTime = DateTime.now().add(Duration(seconds: 15));
+
+    // Schedule the notification
+    await _local!.schedule(
+      0, // Notification ID
+      notificationTitle,
+      notificationBody,
+      scheduleTime!,
+      platformChannelSpecifics,
+      androidAllowWhileIdle: true,
+    );
   }
 
   int curStep = 0;
@@ -140,6 +149,9 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
     // curStep = arguments!['curStep'];
   }
+
+  String? notificationTitle;
+  String? notificationBody;
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +242,8 @@ class _AddTodoPageState extends State<AddTodoPage> {
                                               _button(() {
                                                 if (_firstNameController
                                                         .text.isNotEmpty &&
+                                                    _reminderTitleController
+                                                        .text.isNotEmpty &&
                                                     _descController
                                                         .text.isNotEmpty &&
                                                     _toDateController
@@ -242,15 +256,30 @@ class _AddTodoPageState extends State<AddTodoPage> {
                                                       Hive.box<Contact>(
                                                           contactsBoxName);
                                                   contactsBox.add(Contact(
-                                                      _firstNameController.text,
-                                                      _toDateController.text,
-                                                      _descController.text,
-                                                      _googleMeetController
-                                                          .text,
-                                                      image!.path));
+                                                    _firstNameController.text,
+                                                    _toDateController.text,
+                                                    _descController.text,
+                                                    _googleMeetController.text,
+                                                    image!.path,
+                                                    _reminderTitleController
+                                                        .text,
+                                                  ));
                                                   Navigator.of(context).pop();
+                                                  setState(() {
+                                                    notificationTitle =
+                                                        _reminderTitleController
+                                                            .text;
+                                                    notificationBody =
+                                                        _descController.text;
+                                                  });
+                                                  Fluttertoast.showToast(
+                                                      msg:
+                                                          'Reminder saved successfully',
+                                                      toastLength:
+                                                          Toast.LENGTH_LONG);
+                                                  scheduleNotification();
                                                 }
-                                              }, 'Done'),
+                                              }, 'Add Reminder'),
                                               SizedBox(
                                                 height:
                                                     DeviceUtils.getScaledHeight(
@@ -363,6 +392,15 @@ class _AddTodoPageState extends State<AddTodoPage> {
           height: DeviceUtils.getScaledHeight(context, 1),
         ),
         _buildFirstNameField(),
+        SizedBox(
+          height: DeviceUtils.getScaledHeight(context, 1),
+        ),
+        _buildFormLableText('Reminder Title'),
+        SizedBox(
+          height: DeviceUtils.getScaledHeight(context, 1),
+        ),
+        _buildReminderTitleField(),
+
         SizedBox(
           height: DeviceUtils.getScaledHeight(context, 2),
         ),
@@ -574,6 +612,9 @@ class _AddTodoPageState extends State<AddTodoPage> {
       if (formattedDate.isNotEmpty) {
         if (toDateTimeClick == true) {
           _toDateController.text = formattedDate.toString();
+          String time = DateFormat('kk:mm').format(dateTime!).toString();
+          scheduleTime = dateTime;
+          print('rrrrrrrrrrrrrrrrrrrrrr$time');
         }
         setState(() {});
       } else {}
@@ -611,9 +652,69 @@ class _AddTodoPageState extends State<AddTodoPage> {
             // },
             isIcon: true,
             // prefixText: '+91   ',
-            maxLength: 20,
+            // maxLength: 20,
             iconColor: Colors.black,
             textController: _firstNameController,
+            inputAction: TextInputAction.done,
+            autoFocus: false,
+
+            onChanged: (value) {
+              // setState(() {
+              //   _tryPasteCurrentPhone();
+              // });
+
+              // if(value.toString().isEmpty) {
+              // _formStore.setMobile(_firstNameController.text);
+              //}
+
+              // setState(() {
+              // _formStore.setFirstName(value);
+              // });
+            },
+            // onFieldSubmitted: (value) {
+            //   FocusScope.of(context).requestFocus(_lastNameFocusNode);
+            // },
+            errorText: null,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReminderTitleField() {
+    return Observer(
+      builder: (context) {
+        return Container(
+          /*padding: EdgeInsets.symmetric(
+            horizontal: DeviceUtils.getScaledWidth(context, 3.2),
+          ),*/
+          child: CustomIconTextFieldWidget(
+            // focusNode: Platform.isIOS ? numberFocusNode : null,
+            padding: EdgeInsets.zero,
+            hintColor: AppColors.hintColor,
+            hint: 'Add Reminder Title',
+            inputType: TextInputType.text,
+            // icon: Padding(
+            //   padding: EdgeInsets.symmetric(
+            //       horizontal: Responsive.isTablet(context)
+            //           ? DeviceUtils.getScaledWidth(context, 2.6)
+            //           : DeviceUtils.getScaledWidth(context, 0)),
+            //   child: Icon(
+            //     Icons.call,
+            //     color: _themeStore.darkMode
+            //         ? Colors.white70
+            //         : AppColors.blackShade,
+            //     size: DeviceUtils.getScaledWidth(context, 5.4),
+            //   ),
+            // ),
+            // onTap: () {
+            //   _tryPasteCurrentPhone();
+            // },
+            isIcon: true,
+            // prefixText: '+91   ',
+            // maxLength: 20,
+            iconColor: Colors.black,
+            textController: _reminderTitleController,
             inputAction: TextInputAction.done,
             autoFocus: false,
 
@@ -633,7 +734,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
             // onFieldSubmitted: (value) {
             //   FocusScope.of(context).requestFocus(_lastNameFocusNode);
             // },
-            errorText: _formStore.formErrorStore.firstName,
+            errorText: null,
           ),
         );
       },
@@ -691,7 +792,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
               // });
             },
 
-            errorText: _formStore.formErrorStore.lastName,
+            errorText: null,
           ),
         );
       },
@@ -722,7 +823,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
               _formStore.setLastName(value);
             },
 
-            errorText: _formStore.formErrorStore.lastName,
+            errorText: null,
           ),
         );
       },
@@ -755,14 +856,14 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 // prefixText: '+91   ',
                 // maxLength: 20,
                 iconColor: Colors.black,
-                textController: _googleMeetController,
+                textController: _imageController,
                 inputAction: TextInputAction.done,
                 autoFocus: false,
                 onChanged: (value) {
                   _formStore.setLastName(value);
                 },
 
-                errorText: _formStore.formErrorStore.lastName,
+                errorText: null,
               ),
             );
           },
@@ -818,6 +919,8 @@ class _AddTodoPageState extends State<AddTodoPage> {
     _firstNameController.dispose();
     _descController.dispose();
     _googleMeetController.dispose();
+    _imageController.dispose();
+    _reminderTitleController.dispose();
     super.dispose();
   }
 }

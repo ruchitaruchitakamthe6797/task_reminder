@@ -1,16 +1,18 @@
 import 'package:send_remider_to_user/constants/colors.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TodoListCard extends StatefulWidget {
-  final userName, desc, time, googleLink, ontap;
+  final userName, desc, time, googleLink, ontap, remdName;
   const TodoListCard(
       {Key? key,
       this.userName,
       this.desc,
       this.time,
       this.googleLink,
-      this.ontap})
+      this.ontap,
+      this.remdName})
       : super(key: key);
 
   @override
@@ -18,6 +20,18 @@ class TodoListCard extends StatefulWidget {
 }
 
 class _TodoListCardState extends State<TodoListCard> {
+  @override
+  void initState() {
+    loadData();
+    super.initState();
+  }
+
+  String? link;
+  loadData() async {
+    link = widget.googleLink;
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -67,7 +81,7 @@ class _TodoListCardState extends State<TodoListCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildTextWidget('Name : ', widget.userName),
+                              _buildTextWidget('Name : ', widget.remdName),
                               SizedBox(
                                 height:
                                     DeviceUtils.getScaledHeight(context, .5),
@@ -94,6 +108,17 @@ class _TodoListCardState extends State<TodoListCard> {
         ));
   }
 
+  Future<void> openURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  void _androidURL() async => await canLaunch(link!)
+      ? await launch(link!)
+      : throw 'Could not launch $link';
   Widget _buildTextWidget(name, value) {
     return Row(
       children: [
@@ -112,6 +137,7 @@ class _TodoListCardState extends State<TodoListCard> {
           flex: 3,
           child: Text(
             value,
+            maxLines: 1,
             style: Theme.of(context)
                 .textTheme
                 .subtitle1!
