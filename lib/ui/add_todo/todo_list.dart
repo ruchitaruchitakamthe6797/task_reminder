@@ -209,7 +209,7 @@ class _TodoListScreenState extends State<TodoListScreen>
                     builder: (context, Box<Contact> box, _) {
                       if (box.values.isEmpty)
                         return Center(
-                          child: Text("No contacts"),
+                          child: Text("No Task"),
                         );
                       return ListView.builder(
                         itemCount: box.length,
