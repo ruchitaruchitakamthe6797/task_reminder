@@ -29,6 +29,13 @@
             {
               "client_id": "988550341550-aks86uh5cbs9o96mcu0a9mjhl6674pm7.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "988550341550-cefthb5oh2ls9vkq5lf95honk8jbpgq2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sendRemiderToUser"
+              }
             }
           ]
         }

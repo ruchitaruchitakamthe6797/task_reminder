@@ -2,7 +2,7 @@ name: send_remider_to_user
 description: A new Flutter project.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+  sdk: ">=2.19.5 <3.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,10 +34,10 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_cupertino_localizations: ^1.0.1
-  
+
   # my_plugin:
   # path: /path/to/your/plugin
-  
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.3
@@ -113,6 +113,7 @@ dependencies:
   hive_flutter: any
   connectivity_plus: any
   url_launcher: ^6.0.10
+  cloud_functions: ^3.3.9
 
 dev_dependencies:
   flutter_test:
@@ -134,6 +135,9 @@ dev_dependencies:
   # file_picker: ^4.6.0
   hive_generator: any
 
+dependency_overrides:
+  firebase_core_platform_interface: 4.5.1
+
 flutter_icons:
   image_path: "assets/icons/ic_launcher.png"
   android: true
@@ -151,7 +155,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/
     - assets/icons/
     - assets/lang/
 

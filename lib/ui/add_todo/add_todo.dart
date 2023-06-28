@@ -16,6 +16,7 @@ import 'package:send_remider_to_user/stores/theme/theme_store.dart';
 import 'package:send_remider_to_user/utils/device/device_utils.dart';
 import 'package:send_remider_to_user/widgets/button_widget.dart';
 import 'package:send_remider_to_user/widgets/textfeild_widget.dart';
+import 'package:send_remider_to_user/data/api/firebase_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:geolocator/geolocator.dart';
@@ -278,6 +279,18 @@ class _AddTodoPageState extends State<AddTodoPage> {
                                                       toastLength:
                                                           Toast.LENGTH_LONG);
                                                   scheduleNotification();
+
+                                                  FirebaseApi()
+                                                      .sendScheduledNotification(
+                                                    token: "token",
+                                                    notificationTitle:
+                                                        notificationTitle
+                                                            .toString(),
+                                                    notificationBody:
+                                                        notificationBody
+                                                            .toString(),
+                                                    sendTime: DateTime.now(),
+                                                  );
                                                 }
                                               }, 'Add Reminder'),
                                               SizedBox(
